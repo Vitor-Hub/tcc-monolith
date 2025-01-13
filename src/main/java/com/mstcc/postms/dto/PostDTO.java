@@ -1,6 +1,9 @@
 package com.mstcc.postms.dto;
 
+import com.mstcc.commentms.dto.CommentDTO;
 import com.mstcc.postms.entities.Post;
+import com.mstcc.userms.dto.UserDTO;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,21 +12,13 @@ import java.util.List;
 
 @Setter
 @Getter
+@AllArgsConstructor
 public class PostDTO {
-    // Getters e Setters
+
     private Long id;
     private String content;
     private LocalDateTime createdAt;
     private UserDTO user;
     private List<CommentDTO> comments;
-
-    // Construtores, Getters e Setters
-    public PostDTO(Long id, String content, LocalDateTime createdAt, UserDTO user, List<CommentDTO> comments) {
-        this.id = id;
-        this.content = content;
-        this.createdAt = createdAt;
-        this.user = user;
-        this.comments = comments;
-    }
 
 }

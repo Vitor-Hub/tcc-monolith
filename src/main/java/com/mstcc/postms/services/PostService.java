@@ -1,15 +1,15 @@
 package com.mstcc.postms.services;
 
-import com.mstcc.postms.dto.CommentDTO;
+import com.mstcc.commentms.dto.CommentDTO;
+import com.mstcc.commentms.repositories.CommentRepository;
 import com.mstcc.postms.dto.PostDTO;
-import com.mstcc.postms.dto.UserDTO;
 import com.mstcc.postms.entities.Post;
 import com.mstcc.postms.repositories.PostRepository;
-import com.mstcc.postms.repositories.UserRepository;
-import com.mstcc.postms.repositories.CommentRepository;
 import com.mstcc.postms.exceptions.PostNotFoundException;
 import com.mstcc.postms.exceptions.UserNotFoundException;
+import com.mstcc.userms.dto.UserDTO;
 import com.mstcc.userms.entities.User;
+import com.mstcc.userms.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -90,7 +90,7 @@ public class PostService {
 
     // Método para converter o Post em PostDTO, incluindo User e Comments
     private PostDTO convertToPostDTOWithComments(Post post) {
-        // Buscar o usuário diretamente do banco
+        // Buscar o usuário diretamente do banco com o userId
         Optional<User> user = userRepository.findById(post.getUserId());
         if (user.isEmpty()) {
             throw new UserNotFoundException(post.getUserId());
@@ -101,7 +101,9 @@ public class PostService {
 
         // Buscar os comentários diretamente do banco
         List<CommentDTO> comments = commentRepository.findByPostId(post.getId()).stream()
-                .map(comment -> new CommentDTO(comment.getId(), comment.getContent(), comment.getCreatedAt(), comment.getUserId(), comment.getPostId()))
+                .map(comment -> new CommentDTO(comment.getId(), comment.getContent(), comment.getCreatedAt(),
+                        new UserDTO(comment.getUserId(), "", ""),
+                        new PostDTO(comment.getPostId(), "", null, userDTO, null)))
                 .collect(Collectors.toList());
 
         // Retorna o PostDTO com o usuário e os comentários

@@ -1,4 +1,4 @@
-package com.mstcc.commentms.entities;
+package com.mstcc.likems.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,23 +9,23 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Entity
-@Table(name = "comments")
-public class Comment {
+@Table(name = "likes")
+public class Like {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String content;
-
-    @Column(name = "post_id", nullable = false)
+    @Column(name = "post_id")
     private Long postId;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "comment_id")
+    private Long commentId;
+
+    @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist

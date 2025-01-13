@@ -3,11 +3,13 @@ package com.mstcc.commentms.services;
 import com.mstcc.commentms.dto.CommentDTO;
 import com.mstcc.commentms.entities.Comment;
 import com.mstcc.commentms.repositories.CommentRepository;
-import com.mstcc.commentms.repositories.UserRepository;
-import com.mstcc.commentms.repositories.PostRepository;
 import com.mstcc.commentms.exceptions.CommentNotFoundException;
+import com.mstcc.postms.dto.PostDTO;
 import com.mstcc.postms.entities.Post;
+import com.mstcc.postms.repositories.PostRepository;
+import com.mstcc.userms.dto.UserDTO;
 import com.mstcc.userms.entities.User;
+import com.mstcc.userms.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -83,25 +85,19 @@ public class CommentService {
 
     // Método de conversão de Comment para CommentDTO
     private CommentDTO convertToDto(Comment comment) {
-        CommentDTO commentDto = new CommentDTO();
-        commentDto.setId(comment.getId());
-        commentDto.setContent(comment.getContent());
-        commentDto.setCreatedAt(comment.getCreatedAt());
-
-        // Preenchendo UserDTO
         Optional<User> user = userRepository.findById(comment.getUserId());
-        if (user.isPresent()) {
-            UserDTO userDTO = new UserDTO(user.get().getId(), user.get().getUsername(), user.get().getEmail());
-            commentDto.setUser(userDTO);
-        }
-
-        // Preenchendo PostDTO
         Optional<Post> post = postRepository.findById(comment.getPostId());
-        if (post.isPresent()) {
-            PostDTO postDTO = new PostDTO(post.get().getId(), post.get().getContent(), post.get().getCreatedAt(), post.get().getUserId());
-            commentDto.setPost(postDTO);
-        }
 
-        return commentDto;
+        UserDTO userDTO = user.map(u -> new UserDTO(u.getId(), u.getUsername(), u.getEmail())).orElse(null);
+
+        PostDTO postDTO = post.map(p -> new PostDTO(p.getId(), p.getContent(), p.getCreatedAt(), userDTO, null)).orElse(null);
+
+        return new CommentDTO(
+                comment.getId(),
+                comment.getContent(),
+                comment.getCreatedAt(),
+                userDTO,
+                postDTO
+        );
     }
 }

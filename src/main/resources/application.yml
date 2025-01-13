@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: mstcc
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/sua_base_de_dados
+    username: seu_usuario
+    password: sua_senha
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
+
+  logging:
+    level:
+      org:
+        hibernate:
+          SQL: DEBUG
+          type: TRACE
