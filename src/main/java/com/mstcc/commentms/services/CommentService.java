@@ -34,19 +34,24 @@ public class CommentService {
     // Criação de um comentário
     public CommentDTO createComment(CommentDTO commentDto) {
         // Verifica se o post existe
-        Long postId = commentDto.getPost().getId(); // Recupera o ID do post
-        Optional<Post> postOptional = postRepository.findById(postId);
+        Optional<Post> post = postRepository.findById(commentDto.getPostId());
+        if (post.isEmpty()) {
+            throw new IllegalArgumentException("Post não encontrado ou inválido.");
+        }
 
-        if (postOptional.isEmpty()) {
-            throw new IllegalArgumentException("Post não encontrado ou inválido."); // Lançando exceção caso o post não exista
+        // Verifica se o usuário existe
+        Optional<User> user = userRepository.findById(commentDto.getUserId());
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("Usuário não encontrado ou inválido.");
         }
 
         // Criação do comentário
         Comment comment = new Comment();
         comment.setContent(commentDto.getContent());
-        comment.setPostId(postId); // Define o ID do post no comentário
-        comment.setUserId(commentDto.getUser().getId()); // Define o ID do usuário no comentário
+        comment.setPostId(post.get().getId());  // Define o ID do post no comentário
+        comment.setUserId(user.get().getId());  // Define o ID do usuário no comentário
 
+        // Salva o comentário no banco de dados
         Comment savedComment = commentRepository.save(comment);
 
         // Retorna o DTO do comentário criado
@@ -105,7 +110,7 @@ public class CommentService {
         PostDTO postDTO = postOptional.map(p -> new PostDTO(p.getId(), p.getContent(), p.getCreatedAt(), userDTO, null)).orElse(null);
 
         // Retorna o DTO do comentário com o post e o usuário
-        return new CommentDTO(comment.getId(), comment.getContent(), comment.getCreatedAt(), userDTO, postDTO);
+        return new CommentDTO(comment.getId(), comment.getContent(), comment.getCreatedAt(), userDTO.getId(), postDTO.getId());
     }
 
     // Busca os comentários de um post específico
