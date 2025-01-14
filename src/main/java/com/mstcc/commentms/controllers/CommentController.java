@@ -23,7 +23,12 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<CommentDTO> createComment(@RequestBody CommentDTO commentDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(commentDto));
+        try {
+            CommentDTO createdComment = commentService.createComment(commentDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // Tratando o erro de post inválido
+        }
     }
 
     @PutMapping("/{id}")

@@ -31,22 +31,33 @@ public class CommentService {
         this.postRepository = postRepository;
     }
 
+    // Criação de um comentário
     public CommentDTO createComment(CommentDTO commentDto) {
+        // Verifica se o post existe
+        Long postId = commentDto.getPost().getId(); // Recupera o ID do post
+        Optional<Post> postOptional = postRepository.findById(postId);
+
+        if (postOptional.isEmpty()) {
+            throw new IllegalArgumentException("Post não encontrado ou inválido."); // Lançando exceção caso o post não exista
+        }
+
         // Criação do comentário
         Comment comment = new Comment();
         comment.setContent(commentDto.getContent());
-        comment.setPostId(commentDto.getPost().getId());
-        comment.setUserId(commentDto.getUser().getId());
+        comment.setPostId(postId); // Define o ID do post no comentário
+        comment.setUserId(commentDto.getUser().getId()); // Define o ID do usuário no comentário
+
         Comment savedComment = commentRepository.save(comment);
 
+        // Retorna o DTO do comentário criado
         return convertToDto(savedComment);
     }
 
+    // Atualização de um comentário existente
     public CommentDTO updateComment(Long id, CommentDTO commentDto) {
-        // Atualização do comentário
         Optional<Comment> existingComment = commentRepository.findById(id);
         if (existingComment.isEmpty()) {
-            throw new CommentNotFoundException(id);  // Lançando exceção personalizada
+            throw new CommentNotFoundException(id);
         }
 
         Comment comment = existingComment.get();
@@ -56,28 +67,28 @@ public class CommentService {
         return convertToDto(comment);
     }
 
+    // Deletando um comentário
     public void deleteComment(Long id) {
-        // Deletando o comentário
         Optional<Comment> existingComment = commentRepository.findById(id);
         if (existingComment.isEmpty()) {
-            throw new CommentNotFoundException(id);  // Lançando exceção personalizada
+            throw new CommentNotFoundException(id);
         }
 
         commentRepository.deleteById(id);
     }
 
+    // Obtendo todos os comentários
     public List<CommentDTO> getAllComments() {
-        // Retorna todos os comentários
         return commentRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
+    // Obtendo um comentário específico pelo ID
     public CommentDTO getCommentById(Long id) {
-        // Buscando o comentário pelo ID
         Optional<Comment> comment = commentRepository.findById(id);
         if (comment.isEmpty()) {
-            throw new CommentNotFoundException(id);  // Lançando exceção personalizada
+            throw new CommentNotFoundException(id);
         }
 
         return convertToDto(comment.get());
@@ -85,19 +96,23 @@ public class CommentService {
 
     // Método de conversão de Comment para CommentDTO
     private CommentDTO convertToDto(Comment comment) {
-        Optional<User> user = userRepository.findById(comment.getUserId());
-        Optional<Post> post = postRepository.findById(comment.getPostId());
+        // Busca o usuário associado ao comentário
+        Optional<User> userOptional = userRepository.findById(comment.getUserId());
+        UserDTO userDTO = userOptional.map(u -> new UserDTO(u.getId(), u.getUsername(), u.getEmail())).orElse(null);
 
-        UserDTO userDTO = user.map(u -> new UserDTO(u.getId(), u.getUsername(), u.getEmail())).orElse(null);
+        // Busca o post associado ao comentário
+        Optional<Post> postOptional = postRepository.findById(comment.getPostId());
+        PostDTO postDTO = postOptional.map(p -> new PostDTO(p.getId(), p.getContent(), p.getCreatedAt(), userDTO, null)).orElse(null);
 
-        PostDTO postDTO = post.map(p -> new PostDTO(p.getId(), p.getContent(), p.getCreatedAt(), userDTO, null)).orElse(null);
+        // Retorna o DTO do comentário com o post e o usuário
+        return new CommentDTO(comment.getId(), comment.getContent(), comment.getCreatedAt(), userDTO, postDTO);
+    }
 
-        return new CommentDTO(
-                comment.getId(),
-                comment.getContent(),
-                comment.getCreatedAt(),
-                userDTO,
-                postDTO
-        );
+    // Busca os comentários de um post específico
+    public List<CommentDTO> getCommentsByPostId(Long postId) {
+        List<Comment> comments = commentRepository.findByPostId(postId);
+        return comments.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 }

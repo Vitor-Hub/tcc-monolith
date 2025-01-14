@@ -1,8 +1,9 @@
 package com.mstcc.postms.controllers;
 
 import com.mstcc.postms.dto.PostDTO;
-import com.mstcc.postms.services.PostService;
 import com.mstcc.postms.exceptions.PostNotFoundException;
+import com.mstcc.postms.services.PostService;
+import com.mstcc.userms.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,12 +30,16 @@ public class PostController {
     }
 
     // Endpoint para atualizar um post
-    @PutMapping("/{id}")
-    public ResponseEntity<PostDTO> updatePost(@PathVariable Long id, @RequestBody PostDTO postDto) {
+    @PutMapping("/user/{userId}/posts/{postId}")
+    public ResponseEntity<PostDTO> updatePost(
+            @PathVariable Long userId,
+            @PathVariable Long postId,
+            @RequestBody PostDTO postDto
+    ) {
         try {
-            PostDTO updatedPost = postService.updatePost(id, postDto);
+            PostDTO updatedPost = postService.updatePostForUser(userId, postId, postDto);
             return ResponseEntity.ok(updatedPost);
-        } catch (PostNotFoundException e) {
+        } catch (PostNotFoundException | UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
@@ -66,5 +71,15 @@ public class PostController {
         } catch (PostNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
+
+    // Endpoint para obter todos os posts de um usuário específico
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<PostDTO>> getPostsByUserId(@PathVariable Long userId) {
+        List<PostDTO> posts = postService.getPostsByUserId(userId);
+        if (posts.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(posts);
     }
 }
