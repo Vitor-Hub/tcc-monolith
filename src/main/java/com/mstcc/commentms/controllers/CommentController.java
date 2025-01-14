@@ -63,4 +63,14 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    @GetMapping("/post/{postId}")
+    public ResponseEntity<List<CommentDTO>> getCommentsByPostId(@PathVariable Long postId) {
+        List<CommentDTO> comments = commentService.getCommentsByPostId(postId);
+        if (comments.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(comments);
+    }
+
 }
